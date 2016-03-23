@@ -9,68 +9,95 @@
 #
 ###################################################################
 
+#### TO DO ###
+
+# - Add function to check if user input is not _A or A_
+
+######QUESTIONS DELETE! ! ! ######
+
+# - Is commenting style ok? what is most recommended?
+# - Do we get more marks the more efficient/pythonic we are?
+# - Should if print the initial state and then call show_current_states(states) or just do show_current_states(states)
+# - What happens if user selects one blank and one string should I be using tuples instead?
+# - Do we include a 'win function' when number of differences == 0
+
+# - what happens when you get to this state TTAATTA__A
+
+## Discussions ##
+
+#- considered using replace
+###########################
 def interact():
 
-    states = []
-    #Explain task
-    print("----------WELCOME----------\n\n-INSTRUCTIONS-\nTottenham (T) and Arsenal (A) football club supporters are sitting next to each other.\nThere are two blank chairs at the end of the row.\nYour task is to move the supporters until they are all sitting next to supporters of the same team.\n")
-    #Keybindings
-    print("-KEYS- \nEnter a number to move the supporters at that position to the empty chairs.\nPress 'b' to move back a state\nPress 'q' to quit. \n")
+    
+    states = [] # Records history of supporters position
+  
+    while True:  # Get user input an makes sure it's an int
+        number_of_players = (input("How many supporters from each team"))
+        if number_of_players.isdigit():
+            break
+        else:
+            print('Please enter an integer')
 
-    #check to make sure it is a number
-    number_of_players = input("How many supporters are there on each team?")
+    # Make initial state and print
     states.append(make_initial_state(number_of_players))
+    
     print(states[-1])
+
     while True:
         blanks = position_of_blanks(states[-1])
         show_current_states(states)
-        user_guess=(input("?"))
-
-        #Quit program
-        if user_guess == 'q':
-            print("Thank you for playing")
+        user_guess=(input("? "))
+        
+        if user_guess == 'q': # Quit program
             break
 
-        #Show previous state or print statement if first state
-        elif user_guess == 'b':
+        elif user_guess == 'b': # Go back
             if len(states) > 1:
-                del(states[-1])
+                states.pop()
                 show_current_states(states)
             else:
                 print('This is the first state')
 
-        #make sure input is an integer
+        # If not 'q' or 'b', make sure input is an integer
         elif not user_guess.isdigit():
             print("Please enter an integer")
 
-        elif user_guess == blanks:
+        elif int(user_guess) == blanks:
             print("Please select a supporters position")
 
         elif int(user_guess) > len(states[-1]):
             print("Please enter a number between 0 and " + str(len(states[-1])))
 
+        # Check if position is not _A, A_ or _
+        elif int(user_guess) == ((blanks)+1) or int(user_guess) == ((blanks)-1):
+            print("Please enter the position of the first blank")
+
         else:
             make_move(states[-1],user_guess)
             states.append(make_move(states[-1],user_guess))
 
-
+            
+            
 def make_initial_state(number_of_players):
     """Takes number of supporters for each team and gives back the initial state.
 
-    int -> str"""
-    player_positions = str()    #string of current positions of players
+    int(number of supporters) -> str(first state of supporter positions)"""
+    player_positions = str()    # String of current positions of players
 
     for x in range(int(number_of_players)):
     	player_positions += 'T'
     	player_positions += 'A'
+
     player_positions += '__'
     return(player_positions)
+
 
 
 def make_position_string(length):
     """Takes length of the state and returns a string of numbers representing positions.
 
-    int -> str"""
+    int(number of players) -> str(position of players)"""
 
     length_string = ""
 
@@ -85,28 +112,28 @@ def make_position_string(length):
     return(length_string)
 
 
+
 def num_diffs(state):
     """Takes current state and returns current number of differences between
     adjacent entries.
 
-    str -> int """
+    str(supporter positions) -> int(number of differences) """
 
-    #Counter for number of differences
     number_of_differences = 0
 
-    #if letter at n does not equal letter at n+1 increment counter
+    # If letter != next letter, increment counter
     for n in range(len(state)-1):
         if state[n] != state[n+1]:
             number_of_differences += 1
     return(number_of_differences)
 
 
+
 def position_of_blanks(state):
     """Return location of first blank entry in state
 
-    str -> int"""
+    str(supporter positions) -> int(position of blanks)"""
 
-    #count of current position
     current_position = 0
 
     for n in state:
@@ -117,28 +144,26 @@ def position_of_blanks(state):
             current_position += 1
 
 
+
 def make_move(state, position):
     """Return new state where pair at given position has been swapped with blanks.
     Depends on position_of_blanks function.
 
-    str, int -> str"""
+    str(supporter positions), int(position to move) -> str(updated supporter positions)"""
 
-    position = int(position)
-    #Updated state
     updated_state = ""
-    #Get current position of blanks
+    position = int(position)
     blanks = position_of_blanks(state)
-    #characters (team members) to be moved
-    moving_team_members = str(state[position]+state[position+1])
+    moving_team_members = str(state[position]+state[position+1])     # Supporters to be moved
 
     count = 0
     while count < len(state):
-        #if blank spaces at current position of count, replace with moving team members
+        # If blank spaces at current position of count, replace with moving team members
         if count == blanks:
             updated_state += moving_team_members
             count += 2
 
-        #if count is at user specified position, update with blanks
+        # If count is at user specified position, update with blanks
         elif count == position:
             updated_state += "__"
             count += 2
@@ -150,6 +175,7 @@ def make_move(state, position):
     return(updated_state)
 
 
+
 def show_current_states(states):
     """Prints the most current state and:
     - make_position_string
@@ -157,14 +183,12 @@ def show_current_states(states):
     - num_diffs
     - position_of_blanks
 
-    list -> str,str,int,int"""
+    list(supporter positions history) -> str,str,int,int"""
 
     current_state = states[-1]
 
     print(make_position_string(len(current_state)))
-    print(current_state)
-    print(num_diffs(current_state))
-    print(position_of_blanks(current_state))
+    print((current_state),(num_diffs(current_state)),(position_of_blanks(current_state)))
 
 ##################################################
 # !!!!!! Do not change (or add to) the code below !!!!!
@@ -178,7 +202,5 @@ def show_current_states(states):
 ###################################################
 
 if __name__ == '__main__':
-    interact()
-
-	
-	
+   interact()
+  
