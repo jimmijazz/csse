@@ -9,27 +9,6 @@
 #
 ###################################################################
 
-#### TO DO ###
-
-# - Add function to check if user input is not _A or A_
-
-######QUESTIONS######
-
-# - Is commenting style ok? what is most recommended?
-# - Do we get more marks the more efficient/pythonic we are?
-# - Should if print the initial state and then call show_current_states(states) or just do show_current_states(states)
-# - What happens if user selects one blank and one string should I be using tuples instead?
-# - Do we include a 'win function' when number of differences == 0
-# - Errors when trying to open in python 2.7
-
-# - what happens when you get to this state TTAATTA__A
-
-## Discussions ##
-
-#- considered using replace
-###########################
-
-
 def interact():
     """
 
@@ -198,6 +177,3 @@ def show_current_states(states):
 if __name__ == '__main__':
    interact()
    
-
-
-	
