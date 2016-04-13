@@ -1,0 +1,41 @@
+file = 'scrabble_scores.txt'
+
+def read_scores(file):
+    file = open(file,'r')
+    scores = {}
+    for line in file:
+        line.split(',')
+        letter = line[0]
+        score = line[2]
+        scores.update({letter:score})
+    return(scores)
+        
+def get_score(scores, word):
+    score = 0
+    for n in word:
+        score += int(scores[n])
+    print(score)
+
+def read_config(config_file):
+    file = open(config_file,'r')
+    outer_d = {}
+    inner_d = {}
+    
+
+    for line in file:
+        line = line.strip()
+        
+        if line.startswith('['):
+            if inner_d != None:
+                outer_d[outer_key] = inner_d
+                        
+            inner_d = {}
+            outer_key - line.strip("[]")
+        else:
+            key, value = line.split("=")
+            inner_d[key] = value
+            
+    if inner_d != None:
+        outer_d[outer_key] = inner_d
+
+    return outer_d
