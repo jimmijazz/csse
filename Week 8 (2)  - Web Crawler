@@ -1,0 +1,35 @@
+from html.parser import HTMLParser
+import urllib
+import urllib.request
+
+# Write the LinkParser class here
+
+class LinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self._url_list = []
+        
+    def handle_starttag(self, tag, attrs):
+        for n in tag:
+            if n == 'a':
+                for i in attrs:
+                    if 'href' in i:
+                        self._url_list.append(i[1])
+    def get_urls(self):
+        return self._url_list
+    
+def find_links(url):
+    """Return a list of links from the given webpage"""
+    # Open the webpage and read the HTML text
+    fd = urllib.request.urlopen(url)
+    text = fd.read()
+    fd.close()
+
+    # Create a parser instance and feed it the text
+    parser = LinkParser()
+    parser.feed(str(text)) # Need to convert text to a str as read geives a
+                            # bytes type which feed can not process
+
+    # Write a return statement here
+    return parser.get_urls()
+print(find_links('http://www.google.com'))
