@@ -53,7 +53,7 @@ class Model(object):
         self._paddle = Paddle(100)
         self._ball = Ball(100,100)
 
-        self.set_ball_speed(10,10)
+        self.set_ball_speed(BALL_INITIAL_X_SPEED,BALL_INITIAL_Y_SPEED)
 
     def update(self):
         """ Updates the model. Runs in increments of TIME_STEP.
@@ -102,6 +102,21 @@ class Model(object):
             b = self._block_dict[block]
             Block(b['image'],b['delete'],b['points'])
 
+    def get_lives(self):
+            """ Return the current number of lives/balls.
+
+	    Model.get_lives(() -> int
+	    """
+            return self._lives
+	
+    def set_lives(self, lives):
+            """ increment the number of lives/balls.
+
+                Model.set__lives(int)
+	    """
+            print(self._lives)
+            self._lives += lives
+            print(self._lives)
 
     def get_ball_position(self):
         """ Returns the position of the ball as an (x, y) pair.
@@ -167,16 +182,15 @@ class Model(object):
     def exit_ball(self):
         """ Used to tell the model that the ball has got passed the paddle.
 
-        Model.step_ball() -> bool
+        Model.exit_ball() -> bool
         """
         ball_position = self.get_ball_position()    # Get position of ball
         paddle_box = self.get_paddle_box()          # Get position of paddle
 
-        if ball_position[0] < paddle_box[0]:
+        if ball_position[1] > paddle_box[1]:
             return True
         else:
             return False
-
     def step_ball(self):
         """ step ball"""
         current_position = self.get_ball_position()
@@ -389,7 +403,7 @@ class Breakout(object):
         # Create canvas
         self._canvas = tk.Canvas(master, bg='grey60', width=WIDTH, height=HEIGHT)
         self._canvas.config(scrollregion=[0,0,0,0])
-        self._canvas.pack(expand=1, padx=20, pady=20)
+        
 
         # Bind the leave and enter events for the canvas
         self._canvas.bind("<Leave>", self.leave)
@@ -408,13 +422,14 @@ class Breakout(object):
         }
 
         self.show()
-
+        
         # Call when mouse is clicked
-        self._master.after(TIME_STEP, self.update_game)
+        self._canvas.bind("<Button-2>", self.update_game())
 
+        self._canvas.pack(expand=1, padx=20, pady=20)
+       
     def update_game(self):
-
-
+	
         #Detect Collisions
         c = self.collisions.process_collisions()
         if len(c) > 0:
@@ -424,16 +439,26 @@ class Breakout(object):
                         self.model.set_points(self.model._block_dict.get(c[n])['points'])
                         self.model._block_dict.pop(c[n])
 
-        self.show()
         self.model.update()
+        self.show()
 
         # Update status bar points
         self.status_bar.update_label(self.model.get_points())
 
         # Update status bar lives
-        self.status_bar.update_balls(20)
-
+        
+        if self.model.exit_ball() == True:  # Ball has gone below the paddle
+            self.show_message()             # Show the dialog box
+            self.game_over()                
+        
         self._master.after(TIME_STEP, self.update_game)
+
+    def start(self, event):
+        """ For when ball starts at paddle.
+
+        """
+        self.model.set_ball_position(event.x, 10)  
+        
 
     def show(self):
         self._canvas.delete(tk.ALL)
@@ -450,10 +475,28 @@ class Breakout(object):
             y = (int(n[1]) * BLOCK_WIDTH)-BLOCK_WIDTH/2# fix by using gridinfo(?)
             self._canvas.create_image(y, x,image=self.images['red.gif'])
 
-
+        # Set balls to numbe of lives
+        self.status_bar.update_balls(self.model.get_lives())
+        
         # Create walls (Have to do in show and not load_level because all blocks
         # are deleted each step)
-        # Top
+        self.walls_list()
+       
+    def movement(self, event):
+        """ Moves the paddle to x position of event.
+		
+	Breakout.move(int)
+	"""
+		
+        self.model._paddle.move(event.x)
+        new_x = self.model._paddle.get_box()
+        self._canvas.coords("<Paddle>",new_x,)
+
+    def walls_list(self):
+        """ Creates the list of walls from LENGTH and HEIGHT.
+
+	Breakout.walls_list() -> list
+	"""
         for n in range(NUM_COLUMNS+2):
             self.model._block_dict.update({(0, n):{'image': 'red.gif','delete': False, 'points': 0}})
         # Right
@@ -467,36 +510,12 @@ class Breakout(object):
             self.model._block_dict.update({(n, 0):{'image': 'red.gif','delete': False, 'points': 0}})
 
 
-    def movement(self, event):
+    def show_message(self):
+        messagebox.showinfo("Game Over")
 
-        self.model._paddle.move(event.x)
-        new_x = self.model._paddle.get_box()
-        self._canvas.coords("<Paddle>",new_x,)
-
-    def walls_list(self):
-        top = []
-        right = []
-        bottom = []
-        left = []
-        # Top
-        for n in range(NUM_COLUMNS+2):
-            top.append([n,0])
-
-        # Right
-        for n in range(NUM_ROWS+2):
-            right.append([NUM_COLUMNS+1,n])
-
-        # Bottom
-        for n in range(NUM_COLUMNS+2):
-            bottom.append([NUM_ROWS+1,n])
-
-        # Left
-        for n in range(NUM_ROWS+2):
-            left.append([n,NUM_COLUMNS+1])
-
-        combined = top+right+bottom+left
-        return combined
-
+    def game_over(self):
+        self.model.set_lives(-1)
+        self.status_bar.update_balls(self.model.get_lives())
 
     def leave(self, e):
         print("Leaving canvas")
